@@ -339,7 +339,7 @@ defmodule JOSE.JWK do
   @doc """
   Converts a private `JOSE.JWK` into a public `JOSE.JWK`.
 
-      iex> jwk_rsa = JOSE.JWK.generate_key({:rsa, 256}) 
+      iex> jwk_rsa = JOSE.JWK.generate_key({:rsa, 256})
       %JOSE.JWK{fields: %{}, keys: :undefined,
        kty: {:jose_jwk_kty_rsa,
         {:RSAPrivateKey, :"two-prime",
@@ -512,7 +512,7 @@ defmodule JOSE.JWK do
   @doc """
   Key Agreement encryption of `plain_text` using `my_private_jwk`, `other_public_jwk`, and the algorithms specified by the `jwe`.
 
-      # let's 
+      # let's
   """
   def box_encrypt(plain_text, jwe=%JOSE.JWE{}, other_public_jwk, my_private_jwk), do: box_encrypt(plain_text, JOSE.JWE.to_record(jwe), other_public_jwk, my_private_jwk)
   def box_encrypt(plain_text, jwe, other_public_jwk=%JOSE.JWK{}, my_private_jwk), do: box_encrypt(plain_text, jwe, to_record(other_public_jwk), my_private_jwk)
@@ -621,7 +621,7 @@ defmodule JOSE.JWK do
   def thumbprint(list) when is_list(list), do: for element <- list, into: [], do: thumbprint(element)
   def thumbprint(jwk=%JOSE.JWK{}), do: thumbprint(to_record(jwk))
   def thumbprint(jwk), do: :jose_jwk.thumbprint(jwk)
-  
+
   @doc """
   Returns the unique thumbprint for a `JOSE.JWK` using the `digest_type`.
 
@@ -701,6 +701,15 @@ defmodule JOSE.JWK do
           k
       end
     end)
+  end
+  def verify_strict(signed, allow, jwk) when is_map(jwk) do
+    payload = JOSE.JWT.peek_payload(signed)
+    kid = payload.fields["kid"]
+
+    case jwk[kid] do
+      nil -> {:error, "kid #{kid} not found"}
+      key -> verify_strict(signed, allow, key)
+    end
   end
   def verify_strict(signed, allow, jwk) do
     try do
